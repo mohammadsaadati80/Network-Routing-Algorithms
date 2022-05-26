@@ -16,7 +16,7 @@ const char MAIN_SEPARATOR = ' ';
 const char NUMBER_SEPARATOR = '-';
 
 int number_of_nodes = 0;
-vector<vector<int>> topology(MAX_TOPOLOGY_SIZE , vector<int>(MAX_TOPOLOGY_SIZE, NO_EDGE)); 
+vector<vector<int>> topology(MAX_TOPOLOGY_SIZE + 1 , vector<int>(MAX_TOPOLOGY_SIZE + 1, NO_EDGE)); 
 
 vector<string> split_string(string input_string, char seperator)
 {
@@ -62,12 +62,7 @@ void manage_show_command()
     {
         cout << i << "  |" ;
         for(int j = 1; j < number_of_nodes + 1; j++)
-        {
-            if (i == j)
-                cout << "\t" << 0;
-            else
-                cout << "\t" << topology[i][j];
-        }
+            cout << "\t" << topology[i][j];
         cout << endl;
     }
 }
@@ -122,6 +117,8 @@ bool manage_command(vector<string> commands)
 
 int main()
 {  
+    for(int i = 0; i < MAX_TOPOLOGY_SIZE + 1; i++)
+        topology[i][i] = 0;
     bool quit = false;
     while(!quit)
     {
