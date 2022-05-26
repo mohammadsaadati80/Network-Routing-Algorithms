@@ -49,13 +49,13 @@ void manage_topology_and_modify_command(vector<string> commands, string command_
 
 void manage_show_command()
 {
-    cout << "u|v |  " ;
+    cout << "\nu|v |\t" ;
     for(int i = 0; i < number_of_nodes; i++)
-        cout << i+1 << "   " ;
+        cout << i+1 << "\t" ;
     cout << endl;
 
     for(int i = 0; i <= number_of_nodes; i++)
-        cout << "-----" ;
+        cout << "--------" ;
     cout << endl;
 
     for(int i = 1; i < number_of_nodes + 1; i++)
@@ -64,9 +64,9 @@ void manage_show_command()
         for(int j = 1; j < number_of_nodes + 1; j++)
         {
             if (i == j)
-                cout << "   " << 0;
+                cout << "\t" << 0;
             else
-                cout << "   " << topology[i][j];
+                cout << "\t" << topology[i][j];
         }
         cout << endl;
     }
