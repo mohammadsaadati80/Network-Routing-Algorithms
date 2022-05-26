@@ -11,7 +11,7 @@
 using namespace std;
 
 const int MAX_TOPOLOGY_SIZE = 50;
-const int NO_EDGE = -1;
+const int NO_EDGE = INT32_MAX;
 const char MAIN_SEPARATOR = ' ';
 const char NUMBER_SEPARATOR = '-';
 
@@ -62,7 +62,10 @@ void manage_show_command()
     {
         cout << i << "  |" ;
         for(int j = 1; j < number_of_nodes + 1; j++)
-            cout << "\t" << topology[i][j];
+            if(topology[i][j] == NO_EDGE)
+                cout << "\t" << -1;
+            else
+                cout << "\t" << topology[i][j];
         cout << endl;
     }
 }
@@ -72,10 +75,50 @@ void manage_lsrp_command(vector<string> commands)
 
 }
 
-void manage_dvrp_command(vector<string> commands)
+void manage_dvrp_command(vector<string> nodes) 
 {
+    vector<vector<int>> next_hop(number_of_nodes + 1, vector<int>(number_of_nodes+ 1, NO_EDGE));
 
+    for (int i = 0; i < number_of_nodes + 1; i++)
+        next_hop[i][i] = i;
+
+    for (int i = 1; i < number_of_nodes + 1; i++)
+        for (int j = 1; j < number_of_nodes + 1; j++)
+            if (topology[i][j] != NO_EDGE)
+                next_hop[i][j] = i;
+
+    vector<vector<int>> distance = topology;
+    for (int k = 1; k < number_of_nodes + 1; k++)
+        for (int i = 1; i < number_of_nodes + 1; i++)
+            for (int j = 1; j < number_of_nodes + 1; j++)
+                if (distance[i][k] != NO_EDGE and distance[k][j] != NO_EDGE and distance[i][k] + distance[k][j] < distance[i][j])
+                    {
+                        distance[i][j] = distance[i][k] + distance[k][j];
+                        next_hop[i][j] = next_hop[i][k] != i ? next_hop[i][k] : k;
+                    }
+
+    if(nodes.size() == 0)
+        for (int i = 0; i < number_of_nodes + 1; i++)
+            nodes.push_back(to_string(i));
+
+    for (auto node : nodes)
+    {
+        cout << "\nRouting table for node " << stoi(node) << ":" << endl;
+        cout << "Dest\tNext Hop\tDist\tShortest path" << endl;
+        for (int j = 1; j < number_of_nodes + 1; j++)
+        {
+            cout << j << "\t";
+            if (next_hop[stoi(node)][j] != stoi(node))
+                cout << next_hop[stoi(node)][j] << "\t\t";
+            else
+                cout << j << "\t\t";
+            cout << distance[stoi(node)][j] << "\t" << endl;
+            // TODO Shortest path
+        }
+    }
 }
+
+// topology 1-2-19 1-3-9 2-4-3
 
 void manage_remove_command(vector<string> commands)
 {
