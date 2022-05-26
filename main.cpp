@@ -70,17 +70,42 @@ void manage_show_command()
     }
 }
 
-void manage_lsrp_command(vector<string> commands)
+void manage_lsrp_command(vector<string> commands) //TODO
 {
 
+}
+
+string dvrp_shortest_path(string shortest_path)
+{
+    vector<string> numbers = split_string(shortest_path, NUMBER_SEPARATOR);
+    vector<string> path;
+    for(int i = 0; i < numbers.size(); i++)
+        if (numbers[i] != "")
+            if(path.size() == 0)
+                path.push_back(numbers[i]);
+            else if(path[path.size() - 1] != numbers[i])
+                path.push_back(numbers[i]);
+    string result = "[";
+    for (int i = 0; i < path.size(); i++)
+        result += (path.size() - 1) == i ? path[i] : (path[i] + "->");
+    result += "]";
+    return result;
 }
 
 void manage_dvrp_command(vector<string> nodes) 
 {
     vector<vector<int>> next_hop(number_of_nodes + 1, vector<int>(number_of_nodes+ 1, NO_EDGE));
-
+    vector<vector<string>> shortest_path(number_of_nodes + 1, vector<string>(number_of_nodes+ 1, ""));
+    
     for (int i = 0; i < number_of_nodes + 1; i++)
         next_hop[i][i] = i;
+
+    for (int i = 1; i < number_of_nodes + 1; i++)
+        for (int j = 1; j < number_of_nodes + 1; j++)
+            if(i == j)
+                shortest_path[i][i] = to_string(i);
+            else if (topology[i][j] != NO_EDGE)
+                shortest_path[i][j] = to_string(i) + NUMBER_SEPARATOR + to_string(j) + NUMBER_SEPARATOR;
 
     for (int i = 1; i < number_of_nodes + 1; i++)
         for (int j = 1; j < number_of_nodes + 1; j++)
@@ -94,11 +119,12 @@ void manage_dvrp_command(vector<string> nodes)
                 if (distance[i][k] != NO_EDGE and distance[k][j] != NO_EDGE and distance[i][k] + distance[k][j] < distance[i][j])
                     {
                         distance[i][j] = distance[i][k] + distance[k][j];
+                        shortest_path[i][j] = shortest_path[i][k] + NUMBER_SEPARATOR + shortest_path[k][j] + NUMBER_SEPARATOR;
                         next_hop[i][j] = next_hop[i][k] != i ? next_hop[i][k] : k;
                     }
 
     if(nodes.size() == 0)
-        for (int i = 0; i < number_of_nodes + 1; i++)
+        for (int i = 1; i < number_of_nodes + 1; i++)
             nodes.push_back(to_string(i));
 
     for (auto node : nodes)
@@ -112,8 +138,8 @@ void manage_dvrp_command(vector<string> nodes)
                 cout << next_hop[stoi(node)][j] << "\t\t";
             else
                 cout << j << "\t\t";
-            cout << distance[stoi(node)][j] << "\t" << endl;
-            // TODO Shortest path
+            cout << distance[stoi(node)][j] << "\t" ;
+            cout << dvrp_shortest_path(shortest_path[stoi(node)][j]) << endl;
         }
     }
 }
