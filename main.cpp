@@ -158,8 +158,8 @@ void manage_remove_command(vector<string> commands)
         {
             int first_node = stoi(numbers[0]);
             int second_node = stoi(numbers[1]);
-            topology[first_node][second_node] = -1;
-            topology[second_node][first_node] = -1;
+            topology[first_node][second_node] = NO_EDGE;
+            topology[second_node][first_node] = NO_EDGE;
         }
     }
 }
