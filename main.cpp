@@ -28,7 +28,7 @@ vector<string> split_string(string input_string, char seperator)
     return result;
 }
 
-void manage_topology_and_modify_command(vector<string> commands, string command_type)
+void handle_topology_and_modify_command(vector<string> commands, string command_type)
 {
     for(auto current_command : commands)
     {
@@ -47,7 +47,7 @@ void manage_topology_and_modify_command(vector<string> commands, string command_
     }
 }
 
-void manage_show_command()
+void handle_show_command()
 {
     cout << "\nu|v |\t" ;
     for(int i = 0; i < number_of_nodes; i++)
@@ -70,7 +70,7 @@ void manage_show_command()
     }
 }
 
-void manage_lsrp_command(vector<string> commands) //TODO
+void handle_lsrp_command(vector<string> commands) //TODO
 {
 
 }
@@ -92,7 +92,7 @@ string dvrp_shortest_path(string shortest_path)
     return result;
 }
 
-void manage_dvrp_command(vector<string> nodes) 
+void handle_dvrp_command(vector<string> nodes) 
 {
     vector<vector<int>> next_hop(number_of_nodes + 1, vector<int>(number_of_nodes+ 1, NO_EDGE));
     vector<vector<string>> shortest_path(number_of_nodes + 1, vector<string>(number_of_nodes+ 1, ""));
@@ -147,7 +147,7 @@ void manage_dvrp_command(vector<string> nodes)
 
 // topology 1-2-19 1-3-9 2-4-3
 
-void manage_remove_command(vector<string> commands)
+void handle_remove_command(vector<string> commands)
 {
     for(auto current_command : commands)
     {
@@ -164,22 +164,22 @@ void manage_remove_command(vector<string> commands)
     }
 }
 
-bool manage_commands(vector<string> commands)
+bool handle_commands(vector<string> commands)
 {
     string first_command = commands[0];
     commands.erase(commands.begin());
     if(first_command == "topology")
-        manage_topology_and_modify_command(commands, first_command);
+        handle_topology_and_modify_command(commands, first_command);
     else if(first_command == "show")
-        manage_show_command();
+        handle_show_command();
     else if(first_command == "lsrp")
-        manage_lsrp_command(commands);
+        handle_lsrp_command(commands);
     else if(first_command == "dvrp")
-        manage_dvrp_command(commands);
+        handle_dvrp_command(commands);
     else if(first_command == "modify")
-        manage_topology_and_modify_command(commands, first_command);
+        handle_topology_and_modify_command(commands, first_command);
     else if(first_command == "remove")
-        manage_remove_command(commands);
+        handle_remove_command(commands);
     else if(first_command == "quit")
         return true;
     else
@@ -198,7 +198,7 @@ int main()
         string command_line;
         getline(cin, command_line);
         vector<string> commands = split_string(command_line, MAIN_SEPARATOR);
-        quit = manage_commands(commands);
+        quit = handle_commands(commands);
     }
     return 0;
 }
