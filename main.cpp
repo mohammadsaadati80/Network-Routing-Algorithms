@@ -164,7 +164,7 @@ void manage_remove_command(vector<string> commands)
     }
 }
 
-bool manage_command(vector<string> commands)
+bool manage_commands(vector<string> commands)
 {
     string first_command = commands[0];
     commands.erase(commands.begin());
@@ -182,6 +182,8 @@ bool manage_command(vector<string> commands)
         manage_remove_command(commands);
     else if(first_command == "quit")
         return true;
+    else
+        cout << "\nWrong command." << endl;
     return false;
 }
 
@@ -196,7 +198,7 @@ int main()
         string command_line;
         getline(cin, command_line);
         vector<string> commands = split_string(command_line, MAIN_SEPARATOR);
-        quit = manage_command(commands);
+        quit = manage_commands(commands);
     }
     return 0;
 }
