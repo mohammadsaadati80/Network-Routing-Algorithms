@@ -131,6 +131,7 @@ void manage_dvrp_command(vector<string> nodes)
     {
         cout << "\nRouting table for node " << stoi(node) << ":" << endl;
         cout << "Dest\tNext Hop\tDist\tShortest path" << endl;
+        cout << "------------------------------------------------" << endl;
         for (int j = 1; j < number_of_nodes + 1; j++)
         {
             cout << j << "\t";
