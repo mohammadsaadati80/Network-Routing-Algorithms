@@ -145,8 +145,6 @@ void handle_dvrp_command(vector<string> nodes)
     }
 }
 
-// topology 1-2-19 1-3-9 2-4-3
-
 void handle_remove_command(vector<string> commands)
 {
     for(auto current_command : commands)
@@ -183,7 +181,7 @@ bool handle_commands(vector<string> commands)
     else if(first_command == "quit")
         return true;
     else
-        cout << "\nWrong command." << endl;
+        cout << "\nInvalid command." << endl;
     return false;
 }
 
