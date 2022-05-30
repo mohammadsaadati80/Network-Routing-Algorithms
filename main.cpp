@@ -14,8 +14,6 @@ const int MAX_TOPOLOGY_SIZE = 50;
 const int NO_EDGE = INT32_MAX;
 const char MAIN_SEPARATOR = ' ';
 const char NUMBER_SEPARATOR = '-';
-int fieldWidth = 10;
-
 
 int number_of_nodes = 0;
 vector<vector<int>> topology(MAX_TOPOLOGY_SIZE + 1 , vector<int>(MAX_TOPOLOGY_SIZE + 1, NO_EDGE)); 
@@ -72,100 +70,95 @@ void handle_show_command()
     }
 }
 
-void buildRoutingTable(vector<int> &parent, vector<int> &dist, int src)
+void show_lrsp_table(vector<int> &parent, vector<int> &dist, int src)
 {
   int V = dist.size();
-  cout << "\nRouting table for " << src + 1 << ":\n";
+  cout << "\nRouting table for node " << src + 1 << ":\n";
   cout <<  "Path: [s]->[d]" << "\t  " << "  Min_Cost" << "\t  " << "Shortest Path" << endl;
-  cout << "      ----------    ----------    ----------" << endl;
+  cout << "      ----------    ----------    --------------" << endl;
   for (int i = 0; i < V; i++)
   {
     if (i!=src)
     {
-    vector<int> path;
-    int memo = i;
-    for (int u = i; parent[u] != -1; u = parent[u])
-        memo = u;
-    for (int u = i; u != -1; u = parent[u])
-        path.push_back(u);
-    reverse(path.begin(), path.end());
-    cout << "      " << '[' << src + 1 << "]->[" << i+1 << ']' << "\t\t" << dist[i] << "\t  ";
-    for (int p = 0; p < path.size() - 1; p++)
-      cout << path[p]+1 << "->";
-    cout << path[path.size() - 1] + 1 << "\n";
+        vector<int> path;
+        int memo = i;
+        for (int u = i; parent[u] != -1; u = parent[u])
+            memo = u;
+        for (int u = i; u != -1; u = parent[u])
+            path.push_back(u);
+        reverse(path.begin(), path.end());
+        cout << "      " << '[' << src + 1 << "]->[" << i+1 << ']' << "\t\t" << dist[i] << "\t  ";
+        for (int p = 0; p < path.size() - 1; p++)
+            cout << path[p]+1 << "->";
+        cout << path[path.size() - 1] + 1 << "\n";
     }
   }
+}
+
+void show_lsrp_iteration_table(vector<int> dist, int iteration)
+{
+    cout << endl << "\t" << "Iter " << iteration << ":" << endl;
+    cout << "Dest\t|";
+    for (int i = 1; i < number_of_nodes + 1; i++)
+        cout << "  " << i << "|";
+        
+    cout << endl << "Cost\t|";
+    for (int i = 0; i < dist.size(); i++)
+        if (dist[i] == NO_EDGE)
+            cout << "  " << -1 << "|";
+        else
+            cout << "  " << dist[i] << "|";
+    cout << endl;
+    for(int i = 0; i <= number_of_nodes; i++)
+        cout << "------" ;
+    cout << endl;
 }
 
 pair<vector<int>, vector<int>> dijkstra(int src)
 {
-  int V = number_of_nodes;
-  vector<vector<int>> graph;
-  for (int i = 1; i < V+1;i++)
-  {
-    vector<int> temp;
-    for (int j = 1 ; j < V+1; j++)
+    vector<int> dist(number_of_nodes , NO_EDGE);
+    vector<int> parent(number_of_nodes , src);
+    vector<bool> flag(number_of_nodes , false); // if flag[i] is true, then the node i is included in the spt otherwise not.
+
+    dist[src] = 0;
+    parent[src] = -1;
+
+    for (int c = 0; c < number_of_nodes - 1; c++)
     {
-        temp.push_back(topology[i][j]);
+        int minVal = NO_EDGE, minIndex;
+        for (int i = 0; i < number_of_nodes ; i++)
+            if (flag[i] == false and dist[i] < minVal)
+            {
+                minIndex = i;
+                minVal = dist[i];
+            }
+        int u = minIndex;
+        flag[u] = true;
+        for (int v = 0; v < number_of_nodes ; v++)
+            if (!flag[v] and topology[u + 1][v + 1] != NO_EDGE and dist[u] + topology[u + 1][v + 1] < dist[v])
+            {
+                dist[v] = dist[u] + topology[u + 1][v + 1];
+                parent[v] = u;
+            }
+        show_lsrp_iteration_table(dist, c + 1);
     }
-    graph.push_back(temp);
-  }
-
-  vector<int> dist(V, NO_EDGE);
-  vector<int> parent(V, src);
-  vector<bool> flag(V, false); // if flag[i] is true, then the node i is included in the spt otherwise not.
-
-  dist[src] = 0;
-  parent[src] = -1;
-
-  for (int c = 0; c < V - 1; c++)
-  {
-    int minVal = NO_EDGE, minIndex;
-    for (int i = 0; i < V; i++)
-    {
-      if (flag[i] == false and dist[i] < minVal)
-      {
-        minIndex = i;
-        minVal = dist[i];
-      }
-    }
-    int u = minIndex;
-    flag[u] = true;
-
-    for (int v = 0; v < V; v++)
-    {
-      if (!flag[v] and graph[u][v] != NO_EDGE and dist[u] + graph[u][v] < dist[v])
-      {
-        dist[v] = dist[u] + graph[u][v];
-        parent[v] = u;
-      }
-    }
-  }
-  return {parent, dist};
+    return {parent, dist};
 }
 
-void handle_lsrp_command(vector<string> commands) //TODO
+void handle_lsrp_command(vector<string> nodes) //TODO
 {
-    if (commands.size() == 0)
-    {
-        for (int src = 0; src < number_of_nodes; src++)
-        {
-        auto p = dijkstra(src);
-        vector<int> parent = p.first;
-        vector<int> dist = p.second;
-        buildRoutingTable(parent, dist, src);
-        }
-    }
-    else
-    {
-        int src = stoi(commands[0])-1;
-        auto p = dijkstra(src);
-        vector<int> parent = p.first;
-        vector<int> dist = p.second;
-        buildRoutingTable(parent, dist, src);
-    }
-}
+    if(nodes.size() == 0)
+        for (int i = 1; i < number_of_nodes + 1; i++)
+            nodes.push_back(to_string(i));
 
+    for (auto src : nodes)
+    {
+        auto p = dijkstra(stoi(src) - 1);
+        vector<int> parent = p.first;
+        vector<int> dist = p.second;
+        show_lrsp_table(parent, dist, stoi(src) - 1);
+    }  
+}
 
 string dvrp_shortest_path(string shortest_path)
 {
@@ -223,7 +216,7 @@ void handle_dvrp_command(vector<string> nodes)
     {
         cout << "\nRouting table for node " << stoi(node) << ":" << endl;
         cout << "Dest\tNext Hop\tDist\tShortest path" << endl;
-        cout << "------------------------------------------------" << endl;
+        cout << "--------------------------------------------------------" << endl;
         for (int j = 1; j < number_of_nodes + 1; j++)
         {
             cout << j << "\t";
