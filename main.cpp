@@ -18,6 +18,34 @@ const char NUMBER_SEPARATOR = '-';
 int number_of_nodes = 0;
 vector<vector<int>> topology(MAX_TOPOLOGY_SIZE + 1 , vector<int>(MAX_TOPOLOGY_SIZE + 1, NO_EDGE)); 
 
+vector<string> split_string(string input_string, char seperator);
+bool handle_commands(vector<string> commands);
+void handle_topology_and_modify_command(vector<string> commands, string command_type);
+void handle_show_command();
+void handle_lsrp_command(vector<string> nodes);
+pair<vector<int>, vector<int>> dijkstra(int src);
+void show_lsrp_iteration_table(vector<int> dist, int iteration);
+void show_lrsp_table(vector<int> &parent, vector<int> &dist, int src);
+void handle_dvrp_command(vector<string> nodes);
+string dvrp_shortest_path(string shortest_path);
+void handle_remove_command(vector<string> commands);
+
+int main()
+{  
+    for(int i = 0; i < MAX_TOPOLOGY_SIZE + 1; i++)
+        topology[i][i] = 0;
+    bool quit = false;
+    while(!quit)
+    {
+        cout << endl;
+        string command_line;
+        getline(cin, command_line);
+        vector<string> commands = split_string(command_line, MAIN_SEPARATOR);
+        quit = handle_commands(commands);
+    }
+    return 0;
+}
+
 vector<string> split_string(string input_string, char seperator)
 {
     stringstream string_stream(input_string);
@@ -26,6 +54,29 @@ vector<string> split_string(string input_string, char seperator)
     while(getline(string_stream, current, seperator))
         result.push_back(current);
     return result;
+}
+
+bool handle_commands(vector<string> commands)
+{
+    string first_command = commands[0];
+    commands.erase(commands.begin());
+    if(first_command == "topology")
+        handle_topology_and_modify_command(commands, first_command);
+    else if(first_command == "show")
+        handle_show_command();
+    else if(first_command == "lsrp")
+        handle_lsrp_command(commands);
+    else if(first_command == "dvrp")
+        handle_dvrp_command(commands);
+    else if(first_command == "modify")
+        handle_topology_and_modify_command(commands, first_command);
+    else if(first_command == "remove")
+        handle_remove_command(commands);
+    else if(first_command == "quit")
+        return true;
+    else
+        cout << "\nInvalid command." << endl;
+    return false;
 }
 
 void handle_topology_and_modify_command(vector<string> commands, string command_type)
@@ -55,7 +106,7 @@ void handle_show_command()
     cout << endl;
 
     for(int i = 0; i <= number_of_nodes; i++)
-        cout << "--------" ;
+        cout << "------" ;
     cout << endl;
 
     for(int i = 1; i < number_of_nodes + 1; i++)
@@ -70,7 +121,73 @@ void handle_show_command()
     }
 }
 
-void show_lrsp_table(vector<int> &parent, vector<int> &dist, int src)
+void handle_lsrp_command(vector<string> nodes) 
+{
+    if(nodes.size() == 0)
+        for (int i = 1; i < number_of_nodes + 1; i++)
+            nodes.push_back(to_string(i));
+
+    for (auto src : nodes)
+    {
+        auto p = dijkstra(stoi(src) - 1);
+        vector<int> parent = p.first;
+        vector<int> dist = p.second;
+        show_lrsp_table(parent, dist, stoi(src) - 1);
+    }  
+}
+
+pair<vector<int>, vector<int>> dijkstra(int src)
+{
+    vector<int> parent(number_of_nodes , src);
+    vector<int> dist(number_of_nodes , NO_EDGE);
+    vector<bool> flag(number_of_nodes , false);
+
+    parent[src] = -1;
+    dist[src] = 0;
+
+    for (int c = 0; c < number_of_nodes - 1; c++)
+    {
+        int min_val = NO_EDGE, min_index;
+        for (int i = 0; i < number_of_nodes ; i++)
+            if (flag[i] == false and dist[i] < min_val)
+            {
+                min_val = dist[i];
+                min_index = i;
+            }
+        int u = min_index;
+        flag[u] = true;
+        for (int v = 0; v < number_of_nodes ; v++)
+            if (!flag[v] and topology[u + 1][v + 1] != NO_EDGE and dist[u] + topology[u + 1][v + 1] < dist[v])
+            {
+                parent[v] = u;
+                dist[v] = dist[u] + topology[u + 1][v + 1];  
+            }
+        show_lsrp_iteration_table(dist, c + 1);
+    }
+    return {parent, dist};
+}
+
+void show_lsrp_iteration_table(vector<int> dist, int iteration) //TODO
+{
+    cout << endl << "\t" << "Iter " << iteration << ":" << endl;
+    cout << "Dest\t|";
+    for (int i = 1; i < number_of_nodes + 1; i++)
+        cout << "  " << i << "|";
+        
+    cout << endl << "Cost\t|";
+    for (int i = 0; i < dist.size(); i++)
+        if (dist[i] == NO_EDGE)
+            cout << "  " << -1 << "|";
+        else
+            cout << "  " << dist[i] << "|";
+
+    cout << endl;
+    for(int i = 0; i <= number_of_nodes; i++)
+        cout << "------" ;
+    cout << endl;
+}
+
+void show_lrsp_table(vector<int> &parent, vector<int> &dist, int src) //TODO
 {
   int V = dist.size();
   cout << "\nRouting table for node " << src + 1 << ":\n";
@@ -93,88 +210,6 @@ void show_lrsp_table(vector<int> &parent, vector<int> &dist, int src)
         cout << path[path.size() - 1] + 1 << "\n";
     }
   }
-}
-
-void show_lsrp_iteration_table(vector<int> dist, int iteration)
-{
-    cout << endl << "\t" << "Iter " << iteration << ":" << endl;
-    cout << "Dest\t|";
-    for (int i = 1; i < number_of_nodes + 1; i++)
-        cout << "  " << i << "|";
-        
-    cout << endl << "Cost\t|";
-    for (int i = 0; i < dist.size(); i++)
-        if (dist[i] == NO_EDGE)
-            cout << "  " << -1 << "|";
-        else
-            cout << "  " << dist[i] << "|";
-    cout << endl;
-    for(int i = 0; i <= number_of_nodes; i++)
-        cout << "------" ;
-    cout << endl;
-}
-
-pair<vector<int>, vector<int>> dijkstra(int src)
-{
-    vector<int> dist(number_of_nodes , NO_EDGE);
-    vector<int> parent(number_of_nodes , src);
-    vector<bool> flag(number_of_nodes , false); // if flag[i] is true, then the node i is included in the spt otherwise not.
-
-    dist[src] = 0;
-    parent[src] = -1;
-
-    for (int c = 0; c < number_of_nodes - 1; c++)
-    {
-        int minVal = NO_EDGE, minIndex;
-        for (int i = 0; i < number_of_nodes ; i++)
-            if (flag[i] == false and dist[i] < minVal)
-            {
-                minIndex = i;
-                minVal = dist[i];
-            }
-        int u = minIndex;
-        flag[u] = true;
-        for (int v = 0; v < number_of_nodes ; v++)
-            if (!flag[v] and topology[u + 1][v + 1] != NO_EDGE and dist[u] + topology[u + 1][v + 1] < dist[v])
-            {
-                dist[v] = dist[u] + topology[u + 1][v + 1];
-                parent[v] = u;
-            }
-        show_lsrp_iteration_table(dist, c + 1);
-    }
-    return {parent, dist};
-}
-
-void handle_lsrp_command(vector<string> nodes) //TODO
-{
-    if(nodes.size() == 0)
-        for (int i = 1; i < number_of_nodes + 1; i++)
-            nodes.push_back(to_string(i));
-
-    for (auto src : nodes)
-    {
-        auto p = dijkstra(stoi(src) - 1);
-        vector<int> parent = p.first;
-        vector<int> dist = p.second;
-        show_lrsp_table(parent, dist, stoi(src) - 1);
-    }  
-}
-
-string dvrp_shortest_path(string shortest_path)
-{
-    vector<string> numbers = split_string(shortest_path, NUMBER_SEPARATOR);
-    vector<string> path;
-    for(int i = 0; i < numbers.size(); i++)
-        if (numbers[i] != "")
-            if(path.size() == 0)
-                path.push_back(numbers[i]);
-            else if(path[path.size() - 1] != numbers[i])
-                path.push_back(numbers[i]);
-    string result = "[";
-    for (int i = 0; i < path.size(); i++)
-        result += (path.size() - 1) == i ? path[i] : (path[i] + "->");
-    result += "]";
-    return result;
 }
 
 void handle_dvrp_command(vector<string> nodes) 
@@ -230,6 +265,23 @@ void handle_dvrp_command(vector<string> nodes)
     }
 }
 
+string dvrp_shortest_path(string shortest_path)
+{
+    vector<string> numbers = split_string(shortest_path, NUMBER_SEPARATOR);
+    vector<string> path;
+    for(int i = 0; i < numbers.size(); i++)
+        if (numbers[i] != "")
+            if(path.size() == 0)
+                path.push_back(numbers[i]);
+            else if(path[path.size() - 1] != numbers[i])
+                path.push_back(numbers[i]);
+    string result = "[";
+    for (int i = 0; i < path.size(); i++)
+        result += (path.size() - 1) == i ? path[i] : (path[i] + "->");
+    result += "]";
+    return result;
+}
+
 void handle_remove_command(vector<string> commands)
 {
     for(auto current_command : commands)
@@ -245,43 +297,4 @@ void handle_remove_command(vector<string> commands)
             topology[second_node][first_node] = NO_EDGE;
         }
     }
-}
-
-bool handle_commands(vector<string> commands)
-{
-    string first_command = commands[0];
-    commands.erase(commands.begin());
-    if(first_command == "topology")
-        handle_topology_and_modify_command(commands, first_command);
-    else if(first_command == "show")
-        handle_show_command();
-    else if(first_command == "lsrp")
-        handle_lsrp_command(commands);
-    else if(first_command == "dvrp")
-        handle_dvrp_command(commands);
-    else if(first_command == "modify")
-        handle_topology_and_modify_command(commands, first_command);
-    else if(first_command == "remove")
-        handle_remove_command(commands);
-    else if(first_command == "quit")
-        return true;
-    else
-        cout << "\nInvalid command." << endl;
-    return false;
-}
-
-int main()
-{  
-    for(int i = 0; i < MAX_TOPOLOGY_SIZE + 1; i++)
-        topology[i][i] = 0;
-    bool quit = false;
-    while(!quit)
-    {
-        cout << endl;
-        string command_line;
-        getline(cin, command_line);
-        vector<string> commands = split_string(command_line, MAIN_SEPARATOR);
-        quit = handle_commands(commands);
-    }
-    return 0;
 }
