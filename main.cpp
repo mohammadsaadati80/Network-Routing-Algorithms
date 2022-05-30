@@ -14,6 +14,8 @@ const int MAX_TOPOLOGY_SIZE = 50;
 const int NO_EDGE = INT32_MAX;
 const char MAIN_SEPARATOR = ' ';
 const char NUMBER_SEPARATOR = '-';
+int fieldWidth = 10;
+
 
 int number_of_nodes = 0;
 vector<vector<int>> topology(MAX_TOPOLOGY_SIZE + 1 , vector<int>(MAX_TOPOLOGY_SIZE + 1, NO_EDGE)); 
@@ -70,10 +72,100 @@ void handle_show_command()
     }
 }
 
+void buildRoutingTable(vector<int> &parent, vector<int> &dist, int src)
+{
+  int V = dist.size();
+  cout << "\nRouting table for " << src + 1 << ":\n";
+  cout <<  "Path: [s]->[d]" << "\t  " << "  Min_Cost" << "\t  " << "Shortest Path" << endl;
+  cout << "      ----------    ----------    ----------" << endl;
+  for (int i = 0; i < V; i++)
+  {
+    if (i!=src)
+    {
+    vector<int> path;
+    int memo = i;
+    for (int u = i; parent[u] != -1; u = parent[u])
+        memo = u;
+    for (int u = i; u != -1; u = parent[u])
+        path.push_back(u);
+    reverse(path.begin(), path.end());
+    cout << "      " << '[' << src + 1 << "]->[" << i+1 << ']' << "\t\t" << dist[i] << "\t  ";
+    for (int p = 0; p < path.size() - 1; p++)
+      cout << path[p]+1 << "->";
+    cout << path[path.size() - 1] + 1 << "\n";
+    }
+  }
+}
+
+pair<vector<int>, vector<int>> dijkstra(int src)
+{
+  int V = number_of_nodes;
+  vector<vector<int>> graph;
+  for (int i = 1; i < V+1;i++)
+  {
+    vector<int> temp;
+    for (int j = 1 ; j < V+1; j++)
+    {
+        temp.push_back(topology[i][j]);
+    }
+    graph.push_back(temp);
+  }
+
+  vector<int> dist(V, NO_EDGE);
+  vector<int> parent(V, src);
+  vector<bool> flag(V, false); // if flag[i] is true, then the node i is included in the spt otherwise not.
+
+  dist[src] = 0;
+  parent[src] = -1;
+
+  for (int c = 0; c < V - 1; c++)
+  {
+    int minVal = NO_EDGE, minIndex;
+    for (int i = 0; i < V; i++)
+    {
+      if (flag[i] == false and dist[i] < minVal)
+      {
+        minIndex = i;
+        minVal = dist[i];
+      }
+    }
+    int u = minIndex;
+    flag[u] = true;
+
+    for (int v = 0; v < V; v++)
+    {
+      if (!flag[v] and graph[u][v] != NO_EDGE and dist[u] + graph[u][v] < dist[v])
+      {
+        dist[v] = dist[u] + graph[u][v];
+        parent[v] = u;
+      }
+    }
+  }
+  return {parent, dist};
+}
+
 void handle_lsrp_command(vector<string> commands) //TODO
 {
-
+    if (commands.size() == 0)
+    {
+        for (int src = 0; src < number_of_nodes; src++)
+        {
+        auto p = dijkstra(src);
+        vector<int> parent = p.first;
+        vector<int> dist = p.second;
+        buildRoutingTable(parent, dist, src);
+        }
+    }
+    else
+    {
+        int src = stoi(commands[0])-1;
+        auto p = dijkstra(src);
+        vector<int> parent = p.first;
+        vector<int> dist = p.second;
+        buildRoutingTable(parent, dist, src);
+    }
 }
+
 
 string dvrp_shortest_path(string shortest_path)
 {
