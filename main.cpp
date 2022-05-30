@@ -154,13 +154,12 @@ pair<vector<int>, vector<int>> dijkstra(int src)
                 min_val = dist[i];
                 min_index = i;
             }
-        int u = min_index;
-        flag[u] = true;
+        flag[min_index] = true;
         for (int v = 0; v < number_of_nodes ; v++)
-            if (!flag[v] and topology[u + 1][v + 1] != NO_EDGE and dist[u] + topology[u + 1][v + 1] < dist[v])
+            if (!flag[v] and topology[min_index + 1][v + 1] != NO_EDGE and dist[min_index] + topology[min_index + 1][v + 1] < dist[v])
             {
-                parent[v] = u;
-                dist[v] = dist[u] + topology[u + 1][v + 1];  
+                parent[v] = min_index;
+                dist[v] = dist[min_index] + topology[min_index + 1][v + 1];  
             }
         show_lsrp_iteration_table(dist, c + 1);
     }
@@ -199,10 +198,10 @@ void show_lrsp_table(vector<int> &parent, vector<int> &dist, int src) //TODO
     {
         vector<int> path;
         int memo = i;
-        for (int u = i; parent[u] != -1; u = parent[u])
-            memo = u;
-        for (int u = i; u != -1; u = parent[u])
-            path.push_back(u);
+        for (int min_index = i; parent[min_index] != -1; min_index = parent[min_index])
+            memo = min_index;
+        for (int min_index = i; min_index != -1; min_index = parent[min_index])
+            path.push_back(min_index);
         reverse(path.begin(), path.end());
         cout << "      " << '[' << src + 1 << "]->[" << i+1 << ']' << "\t\t" << dist[i] << "\t  ";
         for (int p = 0; p < path.size() - 1; p++)
