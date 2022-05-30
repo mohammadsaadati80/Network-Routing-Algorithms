@@ -11,4 +11,7 @@ topology 10-12-12
 show
 lsrp
 dvrp
+remove 4-10
+lsrp
+dvrp
 quit
