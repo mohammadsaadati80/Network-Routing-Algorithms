@@ -203,7 +203,7 @@ void show_lrsp_table(vector<int> &parent, vector<int> &dist, int src) //TODO
         for (int min_index = i; min_index != -1; min_index = parent[min_index])
             path.push_back(min_index);
         reverse(path.begin(), path.end());
-        cout << "      " << '[' << src + 1 << "]->[" << i+1 << ']' << "\t\t" << dist[i] << "\t  ";
+        cout << "      " << '[' << src + 1 << "]->[" << i+1 << ']' << "        " << dist[i] << "          ";
         for (int p = 0; p < path.size() - 1; p++)
             cout << path[p]+1 << "->";
         cout << path[path.size() - 1] + 1 << "\n";
