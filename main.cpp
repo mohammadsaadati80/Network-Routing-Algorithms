@@ -186,7 +186,7 @@ pair<vector<int>, vector<int>> dijkstra(int src)
     return {parent, dist};
 }
 
-void show_lsrp_iteration_table(vector<int> dist, int iteration) //TODO
+void show_lsrp_iteration_table(vector<int> dist, int iteration) 
 {
     cout << endl << "\t" << "Iter " << iteration << ":" << endl;
     cout << "Dest\t|";
@@ -206,7 +206,7 @@ void show_lsrp_iteration_table(vector<int> dist, int iteration) //TODO
     cout << endl;
 }
 
-void show_lrsp_table(vector<int> &parent, vector<int> &dist, int src) //TODO
+void show_lrsp_table(vector<int> &parent, vector<int> &dist, int src) 
 {
   int V = dist.size();
   cout << "\nRouting table for node " << src + 1 << ":\n";
@@ -264,13 +264,21 @@ void handle_dvrp_command(vector<string> nodes)
                         next_hop[i][j] = next_hop[i][k] != i ? next_hop[i][k] : k;
                     }
 
-    auto end = chrono::high_resolution_clock::now();
-    time_taken = time_taken + chrono::duration_cast<chrono::nanoseconds>(end - start).count();
-    time_taken *= 1e-9;               
+    auto end = chrono::high_resolution_clock::now();             
 
     if(nodes.size() == 0)
+    {
         for (int i = 1; i < number_of_nodes + 1; i++)
             nodes.push_back(to_string(i));
+        time_taken = time_taken + chrono::duration_cast<chrono::nanoseconds>(end - start).count();
+        time_taken *= 1e-9;  
+    }
+    else
+    {
+        time_taken = time_taken + chrono::duration_cast<chrono::nanoseconds>(end - start).count();
+        time_taken *= double(nodes.size()) / double(number_of_nodes) ;
+        time_taken *= 1e-9;  
+    }
 
     for (auto node : nodes)
     {
