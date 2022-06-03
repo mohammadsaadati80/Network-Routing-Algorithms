@@ -7,6 +7,7 @@
 #include <sstream>
 #include <cmath>
 #include <iomanip>
+#include <chrono>
 
 using namespace std;
 
@@ -16,6 +17,7 @@ const char MAIN_SEPARATOR = ' ';
 const char NUMBER_SEPARATOR = '-';
 
 int number_of_nodes = 0;
+double time_taken = 0;
 vector<vector<int>> topology(MAX_TOPOLOGY_SIZE + 1 , vector<int>(MAX_TOPOLOGY_SIZE + 1, NO_EDGE)); 
 
 vector<string> split_string(string input_string, char seperator);
@@ -65,9 +67,21 @@ bool handle_commands(vector<string> commands)
     else if(first_command == "show")
         handle_show_command();
     else if(first_command == "lsrp")
+    {
+        time_taken = 0;
         handle_lsrp_command(commands);
+        cout << endl << "lsrp time is : " << fixed 
+         << time_taken << setprecision(9);
+        cout << " sec" << endl << endl;
+    }
     else if(first_command == "dvrp")
+    {
+        time_taken = 0;
         handle_dvrp_command(commands);
+        cout << endl << "dvrp time is : " << fixed 
+         << time_taken << setprecision(9);
+        cout << " sec" << endl << endl;
+    }
     else if(first_command == "modify")
         handle_topology_and_modify_command(commands, first_command);
     else if(first_command == "remove")
@@ -142,6 +156,8 @@ pair<vector<int>, vector<int>> dijkstra(int src)
     vector<int> dist(number_of_nodes , NO_EDGE);
     vector<bool> flag(number_of_nodes , false);
 
+    auto start = chrono::high_resolution_clock::now();
+
     parent[src] = -1;
     dist[src] = 0;
 
@@ -163,6 +179,10 @@ pair<vector<int>, vector<int>> dijkstra(int src)
             }
         show_lsrp_iteration_table(dist, c + 1);
     }
+
+    auto end = chrono::high_resolution_clock::now();
+    time_taken = time_taken + chrono::duration_cast<chrono::nanoseconds>(end - start).count();
+    time_taken *= 1e-9;
     return {parent, dist};
 }
 
@@ -215,6 +235,8 @@ void handle_dvrp_command(vector<string> nodes)
 {
     vector<vector<int>> next_hop(number_of_nodes + 1, vector<int>(number_of_nodes+ 1, NO_EDGE));
     vector<vector<string>> shortest_path(number_of_nodes + 1, vector<string>(number_of_nodes+ 1, ""));
+
+    auto start = chrono::high_resolution_clock::now();
     
     for (int i = 0; i < number_of_nodes + 1; i++)
         next_hop[i][i] = i;
@@ -241,6 +263,10 @@ void handle_dvrp_command(vector<string> nodes)
                         shortest_path[i][j] = shortest_path[i][k] + NUMBER_SEPARATOR + shortest_path[k][j] + NUMBER_SEPARATOR;
                         next_hop[i][j] = next_hop[i][k] != i ? next_hop[i][k] : k;
                     }
+
+    auto end = chrono::high_resolution_clock::now();
+    time_taken = time_taken + chrono::duration_cast<chrono::nanoseconds>(end - start).count();
+    time_taken *= 1e-9;               
 
     if(nodes.size() == 0)
         for (int i = 1; i < number_of_nodes + 1; i++)
